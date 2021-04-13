@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/filipedeschamps/video-maker#readme",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "@ffprobe-installer/ffprobe": "^1.0.12",
     "algorithmia": "^0.3.10",
     "cheerio": "^1.0.0-rc.6",
     "express": "^4.16.4",
@@ -29,6 +31,7 @@
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "sbd": "^1.0.14",
+    "videoshow": "^0.1.12",
     "watson-developer-cloud": "^3.18.2"
   }
 }

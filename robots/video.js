@@ -2,8 +2,21 @@ const gm = require("gm").subClass({ imageMagick: true });
 const state = require("./state.js");
 const spawn = require("child_process").spawn;
 const path = require("path");
-const os = require("os");
 const rootPath = path.resolve(__dirname, "..");
+
+const os = require('os')
+const fs = require('fs')
+
+const videoshow = require('videoshow')
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path
+const ffprobePath = require('@ffprobe-installer/ffprobe').path
+
+const audio = path.join(__dirname, '../templates/1/newsroom.mp3')
+const video = path.join(__dirname, '../content/output.mp4')
+
+let ffmpeg = require('fluent-ffmpeg')
+ffmpeg.setFfmpegPath(ffmpegPath)
+ffmpeg.setFfprobePath(ffprobePath)
 
 const fromRoot = (relPath) => path.resolve(rootPath, relPath);
 
@@ -14,8 +27,8 @@ async function robot() {
   await convertAllImages(content);
   await createAllSentenceImages(content);
   await createYouTubeThumbnail();
-  await createAfterEffectsScript(content);
-  await renderVideoWithAfterEffects();
+  await createVideoScript(content);
+  await renderVideo(content);
 
   state.save(content);
 
@@ -143,47 +156,97 @@ async function robot() {
     });
   }
 
-  async function createAfterEffectsScript(content) {
-    await state.saveScript(content);
+  async function createVideoScript(content) {
+    await state.saveScript(content)
   }
 
-  async function renderVideoWithAfterEffects() {
-    return new Promise((resolve, reject) => {
-      const systemPlatform = os.platform;
+  async function renderVideo(content) {
+    let aerenderFilePath;
 
-      if (systemPlatform == "darwin") {
-        const aerenderFilePath =
-          "/Applications/Adobe After Effects CC 2019/aerender";
-      } else if (systemPlatform == "win32") {
-        const aerenderFilePath =
-          "%programfiles%AdobeAdobe After Effects CCArquivos de suporteaerender.exe";
-      } else {
-        return reject(new Error("System not Supported"));
+    const systemPlatform = os.platform
+    if (systemPlatform == 'darwin'){
+      aerenderFilePath = '/Applications/Adobe After Effects CC 2019/aerender'
+    }else if (systemPlatform =='win32'){
+      aerenderFilePath = '%programfiles%\Adobe\Adobe After Effects CC\Arquivos de suporte\aerender.exe'
+    }
+
+    try {
+      if (fs.existsSync(aerenderFilePath)) {
+        return await renderVideoWithAfterEffects(aerenderFilePath)
+      }
+    } catch(err) {
+      console.error(err)
+    }
+
+    return await renderVideoWithFFmpeg(content)
+  }
+
+  async function renderVideoWithAfterEffects(aerenderFilePath) {
+    return new Promise((resolve, reject) => {
+      const templateFilePath = fromRoot('./templates/1/template.aep')
+      const destinationFilePath = fromRoot('./content/output.mov')
+    })
+   }
+
+  async function renderVideoWithFFmpeg(content) {
+    return new Promise((resolve, reject) => {
+      let images = []
+
+      for (let i = 0; i < content.sentences.length; i++) {
+        images.push({
+          path: content.convertedImages[i],
+          caption: content.sentences[i].text
+        })
       }
 
-      const templateFilePath = fromRoot("./templates/1/template.aep");
-      const destinationFilePath = fromRoot("./content/output.mov");
+      const videoOptions = {
+        fps: 25,
+        loop: 5, // seconds
+        transition: true,
+        transitionDuration: 1, // seconds
+        videoBitrate: 1024,
+        videoCodec: "libx264",
+        size: "640x?",
+        audioBitrate: "128k",
+        audioChannels: 2,
+        format: "mp4",
+        pixelFormat: "yuv420p",
+        useSubRipSubtitles: false, // Use ASS/SSA subtitles instead
+        subtitleStyle: {
+          Fontname: "Verdana",
+          Fontsize: "26",
+          PrimaryColour: "11861244",
+          SecondaryColour: "11861244",
+          TertiaryColour: "11861244",
+          BackColour: "-2147483640",
+          Bold: "2",
+          Italic: "0",
+          BorderStyle: "2",
+          Outline: "2",
+          Shadow: "3",
+          Alignment: "1", // left, middle, right
+          MarginL: "40",
+          MarginR: "60",
+          MarginV: "40"
+        }
+      }
 
-      console.log("> [video-robot] Starting After Effects");
-
-      const aerender = spawn(aerenderFilePath, [
-        "-comp",
-        "main",
-        "-project",
-        templateFilePath,
-        "-output",
-        destinationFilePath,
-      ]);
-
-      aerender.stdout.on("data", (data) => {
-        process.stdout.write(data);
-      });
-
-      aerender.on("close", () => {
-        console.log("> [video-robot] After Effects closed");
-        resolve();
-      });
-    });
+      videoshow(images, videoOptions)
+        .audio(audio)
+        .save(video)
+        .on("start", () => {
+          console.log('> [video-robot] Starting FFmpeg')
+        })
+        .on("error", (err, stdout, stderr) => {
+          console.error("Error:", err)
+          console.error("ffmpeg stderr:", stderr)
+          reject(err)
+        })
+        .on("end", () => {
+          console.log('> [video-robot] FFmpeg closed')
+          resolve()
+        })
+    })
   }
 }
 
