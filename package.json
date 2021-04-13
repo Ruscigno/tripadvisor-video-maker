@@ -1,7 +1,7 @@
 {
-  "name": "video-maker",
+  "name": "tripadvisor-video-maker",
   "version": "1.0.0",
-  "description": "Projeto open source para fazer vídeos automatizados",
+  "description": "Scrape a listing page and create a video based on the images and reviews of it",
   "main": "index.js",
   "scripts": {
     "start": "node .",
