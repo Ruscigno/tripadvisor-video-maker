@@ -23,7 +23,7 @@ async function robot() {
   sanitizeContent(content);
   breakContentIntoSentences(content);
   limitMaximumSentences(content);
-  await fetchKeywordsOfAllSentences(content);
+//   await fetchKeywordsOfAllSentences(content);
 
   state.save(content);
 

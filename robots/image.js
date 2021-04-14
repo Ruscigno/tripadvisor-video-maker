@@ -24,21 +24,24 @@ async function robot() {
       if (meta.length <= 33) {
         return;
       }
-      const imageURL =
-        "https://media-cdn.tripadvisor.com/media/photo-m/1280/" +
-        meta.substring(48);
-      content.images[pos] = imageURL;
-      pos++;
+      const imageURL = "https://media-cdn.tripadvisor.com/media/photo-m/1280/" + meta.substring(48);
+      if (content.html.includes(imageURL)){
+        content.images[pos] = imageURL;
+        pos++;
+      };
     });
   }
 
   async function downloadAllImages(content) {
     content.downloadedImages = [];
     content.sentenceImages = [];
-    content.imagesFileNames = [];
 
-    for (let i = 0; i < content.images.length; i++) {
-      const imageUrl = content.images[i];
+    let imageIndex = 0;
+    for (let i = 0; i < content.sentences.length; i++) {
+      if (content.images.length == imageIndex) {
+        imageIndex = 0;
+      }
+      const imageUrl = content.images[imageIndex];
       try {
         if (content.downloadedImages.includes(imageUrl)) {
           throw new Error("Image already downloaded");
@@ -58,6 +61,7 @@ async function robot() {
             `> [image-robot] [${i}] Error (${imageUrl}): ${error}`
         );
       }
+      imageIndex++;
     }
   }
 

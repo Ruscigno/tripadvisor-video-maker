@@ -206,7 +206,7 @@ async function robot() {
         transitionDuration: 1, // seconds
         videoBitrate: 1024,
         videoCodec: "libx264",
-        size: "640x?",
+        size: "680x?",
         audioBitrate: "128k",
         audioChannels: 2,
         format: "mp4",
@@ -214,7 +214,7 @@ async function robot() {
         useSubRipSubtitles: false, // Use ASS/SSA subtitles instead
         subtitleStyle: {
           Fontname: "Verdana",
-          Fontsize: "26",
+          Fontsize: "42",
           PrimaryColour: "11861244",
           SecondaryColour: "11861244",
           TertiaryColour: "11861244",
